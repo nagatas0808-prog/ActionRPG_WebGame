@@ -1,0 +1,15 @@
+{
+  "name": "action-rpg-just-evasion",
+  "version": "1.0.0",
+  "description": "2D Action RPG with Just Evasion mechanics",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "wrangler pages deploy public"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

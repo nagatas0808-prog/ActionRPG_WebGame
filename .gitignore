@@ -1,0 +1,12 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Project specific ignores
+node_modules/
+.wrangler/
+*.py
+!crop_sprite.py
+*_raw.png
+hero_v*_*.png
+temp/
