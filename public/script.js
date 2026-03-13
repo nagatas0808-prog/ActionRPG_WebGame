@@ -374,6 +374,7 @@ class Player {
 
         // Combo System
         this.comboCount = 0; // 0, 1, 2 (3 hits max)
+        this.lastComboCount = 1; // For rendering: stores the combo stage at attack start
         this.comboTimer = 0; // Time window to continue combo
         this.comboWindow = 0.6; // Seconds to input next combo hit
 
@@ -562,7 +563,7 @@ class Player {
             else if (this.isSpecialAttacking) trailFrame = 8; // Ougi
             else if (this.isAttacking) {
                 // Map 3-stage combo to frames 5, 6, 7
-                trailFrame = 5 + this.comboCount; // comboCount is 0-indexed (0,1,2)
+                trailFrame = 4 + this.lastComboCount; // lastComboCount persists during attack rendering
             } else if (this.isEvading) { // Dashing/Dodging
                 // Determine if dashing forward or backward relative to facing
                 const moveAngle = Math.atan2(this.vy, this.vx);
@@ -622,7 +623,7 @@ class Player {
             frameX = 8; // Ougi
         } else if (this.isAttacking) {
             // Map 3-stage combo to frames 5, 6, 7
-            frameX = 5 + this.comboCount; // comboCount is 0-indexed (0,1,2)
+            frameX = 4 + this.lastComboCount; // lastComboCount persists during attack rendering
         } else if (this.isEvading) { // Dashing/Dodging
             // Determine if dashing forward or backward relative to facing
             const moveAngle = Math.atan2(this.vy, this.vx);
@@ -826,6 +827,7 @@ class Player {
             } else {
                 this.comboCount = 1; // First hit
             }
+            this.lastComboCount = this.comboCount; // Save for rendering
             this.comboTimer = this.comboWindow;
 
             // Combo finisher (3rd hit) has longer cooldown
