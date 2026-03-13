@@ -737,7 +737,7 @@ class Player {
         }
 
         // Draw current frame from simplified single-row sprite sheet
-        ctx.drawImage(img, frame * sWidth, 0, sWidth, sHeight, -spriteW / 2, -spriteH * 0.75, spriteW, spriteH);
+        ctx.drawImage(img, frameX * sWidth, 0, sWidth, sHeight, -spriteW / 2, -spriteH * 0.75, spriteW, spriteH);
         
         ctx.restore();
         ctx.restore(); // main save
