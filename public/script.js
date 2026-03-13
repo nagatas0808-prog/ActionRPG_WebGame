@@ -554,20 +554,33 @@ class Player {
         const shouldTrail = this.isEvading || this.isAttacking || this.isSpecialAttacking || (Math.abs(this.vx) > 100 || Math.abs(this.vy) > 100);
         if (shouldTrail && this.trailTimer >= this.trailInterval) {
             this.trailTimer = 0;
-            // Capture current animation state for the trail (Single row 9-frame sprite sheet)
-            let trailFrame = 1; // Default Idle
-            if (this.health <= 0) trailFrame = 8; // Death
-            else if (this.isSpecialAttacking) trailFrame = 7; // Ougi
+            // Capture current animation state for the trail (10-frame sprite sheet)
+            let trailFrame = 0; // Default Idle
+            const facing = this.facingRight ? 1 : -1; // 1 for right, -1 for left
+
+            if (this.health <= 0) trailFrame = 9; // Death
+            else if (this.isSpecialAttacking) trailFrame = 8; // Ougi
             else if (this.isAttacking) {
-                const progress = 1 - (this.attackTimer / this.attackDuration);
-                if (progress < 0.3) trailFrame = 4;      // Windup
-                else if (progress < 0.7) trailFrame = 5; // Impact
-                else trailFrame = 6;                     // Follow-through
-            } else if (this.isEvading) {
-                const dot = (this.vx * (this.facingRight ? 1 : -1));
-                trailFrame = dot > 10 ? 2 : 3; // 2: Dash Forward, 3: Backstep
-            } else if (Math.abs(this.vx) > 10 || Math.abs(this.vy) > 10) {
-                trailFrame = 2; // Run
+                // Map 3-stage combo to frames 5, 6, 7
+                trailFrame = 5 + this.comboCount; // comboCount is 0-indexed (0,1,2)
+            } else if (this.isEvading) { // Dashing/Dodging
+                // Determine if dashing forward or backward relative to facing
+                const moveAngle = Math.atan2(this.vy, this.vx);
+                const facingAngle = facing === 1 ? 0 : Math.PI;
+                const diff = Math.abs(moveAngle - facingAngle);
+                const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
+                
+                trailFrame = isMovingForward ? 3 : 4; // 3: Fwd Dash, 4: Backstep
+            } else if (Math.abs(this.vx) > 10 || Math.abs(this.vy) > 10) { // Running
+                // Determine if running forward or backward relative to facing
+                const moveAngle = Math.atan2(this.vy, this.vx);
+                const facingAngle = facing === 1 ? 0 : Math.PI;
+                const diff = Math.abs(moveAngle - facingAngle);
+                const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
+                
+                trailFrame = isMovingForward ? 1 : 2; // 1: Run Forward, 2: Run Backward
+            } else {
+                trailFrame = 0; // Idle
             }
 
             this.trail.push({
@@ -582,7 +595,7 @@ class Player {
 
         // --- Standard Animation Update (Simplified for Player) ---
         // Character doesn't have multi-frame loop animations currently, just state-based
-        this.animFrame = 1; // Reset to idle
+        this.animFrame = 0; // Reset to idle (frame 0)
     }
 
     draw(ctx) {
@@ -592,29 +605,42 @@ class Player {
 
         if (!img || !img.complete) return;
 
-        const cols = 9;
+        const cols = 10; // Updated to 10 frames
         const sWidth = img.width / cols;
         const sHeight = img.height;
         const spriteW = 160; // Increased size for better presence
         const spriteH = 160;
 
-        // Determine current animation frame:
-        // 0:Spawn, 1:Idle, 2:Dash/Run, 3:Backstep, 4:Windup, 5:Attack, 6:Follow, 7:Ougi, 8:Death
-        let frame = 1;
+        // Determine current animation frame (10-frame system):
+        // 0:Idle, 1:Run Forward, 2:Run Backward, 3:Fwd Dash, 4:Backstep, 5:Attack1, 6:Attack2, 7:Attack3, 8:Ougi, 9:Death
+        let frameX = 0; 
+        const facing = this.facingRight ? 1 : -1; // 1 for right, -1 for left
+        
         if (this.health <= 0) {
-            frame = 8; // Death
+            frameX = 9; // Death
         } else if (this.isSpecialAttacking) {
-            frame = 7; // Ougi (Special Pose)
+            frameX = 8; // Ougi
         } else if (this.isAttacking) {
-            const progress = 1 - (this.attackTimer / this.attackDuration);
-            if (progress < 0.3) frame = 4;      // Windup
-            else if (progress < 0.7) frame = 5; // Impact
-            else frame = 6;                     // Follow-through
-        } else if (this.isEvading) {
-            const dot = (this.vx * (this.facingRight ? 1 : -1));
-            frame = dot > 10 ? 2 : 3; // 2: Dash Forward, 3: Backstep
-        } else if (isMoving) {
-            frame = 2; // Run
+            // Map 3-stage combo to frames 5, 6, 7
+            frameX = 5 + this.comboCount; // comboCount is 0-indexed (0,1,2)
+        } else if (this.isEvading) { // Dashing/Dodging
+            // Determine if dashing forward or backward relative to facing
+            const moveAngle = Math.atan2(this.vy, this.vx);
+            const facingAngle = facing === 1 ? 0 : Math.PI;
+            const diff = Math.abs(moveAngle - facingAngle);
+            const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
+            
+            frameX = isMovingForward ? 3 : 4; // 3: Fwd Dash, 4: Backstep
+        } else if (isMoving) { // Running
+            // Determine if running forward or backward relative to facing
+            const moveAngle = Math.atan2(this.vy, this.vx);
+            const facingAngle = facing === 1 ? 0 : Math.PI;
+            const diff = Math.abs(moveAngle - facingAngle);
+            const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
+            
+            frameX = isMovingForward ? 1 : 2; // 1: Run Forward, 2: Run Backward
+        } else {
+            frameX = 0; // Idle
         }
 
         // --- Draw Afterimage Trail ---
