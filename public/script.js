@@ -822,15 +822,41 @@ class Player {
             this.lastComboCount = this.comboCount; // Save for rendering
             this.comboTimer = this.comboWindow;
 
-            // --- 踏み込み (Step-in / Lunge) Logic ---
-            // Apply a burst of velocity in the direction of attack
-            this.vy = Math.sin(this.attackAngle) * lungePower;
+            // --- Find Closest Enemy for Snapping & Lunge ---
+            let closestEnemy = null;
+            let closestDist = Infinity;
+            enemies.forEach(enemy => {
+                const dist = getDistance(this.x, this.y, enemy.x, enemy.y);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestEnemy = enemy;
+                }
+            });
 
-            if (closestEnemy) {
+            if (closestEnemy && closestDist < 300) {
                 // Snap direction to the enemy
                 this.attackAngle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
             }
 
+            // --- 踏み込み (Step-in / Lunge) Logic ---
+            // Apply a burst of velocity in the direction of attack
+            const lungeSpeed = 600 + (this.comboCount * 150); 
+            this.vx = Math.cos(this.attackAngle) * lungeSpeed;
+            this.vy = Math.sin(this.attackAngle) * lungeSpeed;
+
+            // Combo finisher (3rd hit) has longer cooldown
+            if (this.comboCount >= 3) {
+                this.currentAttackCooldown = this.attackCooldown * 1.5; 
+                this.comboTimer = 0; 
+                this.comboCount = 0;
+            } else {
+                this.currentAttackCooldown = this.attackDuration + 0.05; 
+            }
+
+            // Automatic critical chance from perks
+            if (this.baseCritChance > 0 && Math.random() < this.baseCritChance) {
+                this.hasCriticalNext = true;
+            }
 
             // Combo damage multiplier: 1x, 1.5x, 2.5x
             const comboDamageMultiplier = [1, 1.5, 2.5][Math.min(this.comboCount - 1, 2)] || 1;
@@ -851,9 +877,9 @@ class Player {
                             finalAttackPower *= 1.5;
                         }
 
-                        // 絶影 (zetsuei): クリティカル倍率の適用、乾坤一擲 (kenkon): ジャスト回避後のクリティカルならさらに1.5倍
-                        let critMult = this.critDamageMultiplier; // default 5
-                        if (this.counterBoost) critMult *= 1.5; // +50% damage if from Just Evade + kenkon
+                        // 絶影 (zetsuei): クリティカル倍率の適用
+                        let critMult = this.critDamageMultiplier; 
+                        if (this.counterBoost) critMult *= 1.5; 
 
                         let dmg = this.hasCriticalNext
                             ? finalAttackPower * critMult
@@ -862,14 +888,14 @@ class Player {
                         if (this.hasCriticalNext) {
                             this.hasCriticalNext = false;
                             showMessage("絶影！", "critical");
-                            createParticles(enemy.x, enemy.y, '#ffd700', 8); // reduced from 20
+                            createParticles(enemy.x, enemy.y, '#ffd700', 8); 
                         } else {
-                            createParticles(enemy.x, enemy.y, '#c0c0c0', 2); // reduced from 5
+                            createParticles(enemy.x, enemy.y, '#c0c0c0', 2); 
                         }
 
                         enemy.takeDamage(dmg);
 
-                        // Massive Stagger/Knockback on each combo hit to match the aggressive lunge
+                        // Massive Stagger/Knockback on each combo hit
                         const knockbackForce = 600 + (this.comboCount * 300);
                         enemy.applyStagger(this.attackAngle, knockbackForce);
 
