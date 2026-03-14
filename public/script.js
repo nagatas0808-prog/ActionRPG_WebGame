@@ -824,8 +824,6 @@ class Player {
 
             // --- 踏み込み (Step-in / Lunge) Logic ---
             // Apply a burst of velocity in the direction of attack
-            const lungePower = this.comboCount === 3 ? 600 : 400; // Finishers lunge further
-            this.vx = Math.cos(this.attackAngle) * lungePower;
             this.vy = Math.sin(this.attackAngle) * lungePower;
 
             if (closestEnemy) {
@@ -833,11 +831,6 @@ class Player {
                 this.attackAngle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
             }
 
-            // Forward lunge: step toward facing direction on each combo hit
-            // Made extreme: almost equal to evade speed (800) for huge forward momentum
-            const lungeSpeed = 700 + (this.comboCount * 200);
-            this.vx = Math.cos(this.attackAngle) * lungeSpeed;
-            this.vy = Math.sin(this.attackAngle) * lungeSpeed;
 
             // Combo damage multiplier: 1x, 1.5x, 2.5x
             const comboDamageMultiplier = [1, 1.5, 2.5][Math.min(this.comboCount - 1, 2)] || 1;
