@@ -366,8 +366,6 @@ class Player {
         this.counterBoost = false; // Increased Critical Damage after Just Evade
         this.specialRangeMultiplier = 1.0; // Multiplier for Special Attack AoE
         this.autoEvade = false; // Automatically consume SP to evade damage
-
-        this.isAttacking = false;
         this.attackDuration = 0.15;
         this.attackTimer = 0;
         this.hasCriticalNext = false;
@@ -559,23 +557,23 @@ class Player {
             let trailFrame = 0; // Default Idle
             const facing = this.facingRight ? 1 : -1; // 1 for right, -1 for left
 
-            if (this.health <= 0) trailFrame = 11; // Death (v8)
-            else if (this.isSpecialAttacking) trailFrame = 10; // Ougi (v8)
+            if (this.health <= 0) trailFrame = 9; // Death (v9)
+            else if (this.isSpecialAttacking) trailFrame = 8; // Ougi (v9)
             else if (this.isAttacking) {
-                // Map 1-indexed comboCount (1,2,3) to v8 frames (6, 7, 8)
-                trailFrame = 5 + this.lastComboCount; 
+                // Map 1-indexed comboCount (1,2,3) to v9 frames (5, 6, 7)
+                trailFrame = 4 + this.lastComboCount; 
             } else if (this.isEvading) {
                 const moveAngle = Math.atan2(this.vy, this.vx);
                 const facingAngle = facing === 1 ? 0 : Math.PI;
                 const diff = Math.abs(moveAngle - facingAngle);
                 const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
-                trailFrame = isMovingForward ? 3 : 4; // 3: DashF, 4: Backstep (v8)
+                trailFrame = isMovingForward ? 3 : 4; // 3: DashF, 4: Backstep (v9)
             } else if (Math.abs(this.vx) > 10 || Math.abs(this.vy) > 10) {
                 const moveAngle = Math.atan2(this.vy, this.vx);
                 const facingAngle = facing === 1 ? 0 : Math.PI;
                 const diff = Math.abs(moveAngle - facingAngle);
                 const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
-                trailFrame = isMovingForward ? 1 : 2; // 1: RunF, 2: RunB (v8)
+                trailFrame = isMovingForward ? 1 : 2; // 1: RunF, 2: RunB (v9)
             } else {
                 trailFrame = 0; // Idle
             }
@@ -602,7 +600,7 @@ class Player {
 
         if (!img || !img.complete) return;
 
-        const cols = 12; // Updated to 12 frames for v8 stability
+        const cols = 10; // Back to 10 frames with clean v9 asset
         const sWidth = img.width / cols;
         const sHeight = img.height;
         const spriteW = 160; // Increased size for better presence
@@ -614,18 +612,18 @@ class Player {
         const facing = this.facingRight ? 1 : -1; // 1 for right, -1 for left
         
         if (this.health <= 0) {
-            frameX = 11; // Death (v8)
+            frameX = 9; // Death (v9)
         } else if (this.isSpecialAttacking) {
-            frameX = 10; // Ougi (v8)
+            frameX = 8; // Ougi (v9)
         } else if (this.isAttacking) {
-            // Map 1-indexed comboCount (1,2,3) to v8 frames (6, 7, 8)
-            frameX = 5 + this.lastComboCount; 
+            // Map 1-indexed comboCount (1,2,3) to v9 frames (5, 6, 7)
+            frameX = 4 + this.lastComboCount; 
         } else if (this.isEvading) {
             const moveAngle = Math.atan2(this.vy, this.vx);
             const facingAngle = facing === 1 ? 0 : Math.PI;
             const diff = Math.abs(moveAngle - facingAngle);
             const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
-            frameX = isMovingForward ? 3 : 4; // 3: DashF, 4: Backstep (v8)
+            frameX = isMovingForward ? 3 : 4; // 3: DashF, 4: Backstep (v9)
         } else if (isMoving) { // Running
             // Determine if running forward or backward relative to facing
             const moveAngle = Math.atan2(this.vy, this.vx);
@@ -959,10 +957,10 @@ class Player {
 
             // Determine dash direction
             let dx = 0, dy = 0;
-            if (keys.w || keys.ArrowUp) dy -= 1;
-            if (keys.s || keys.ArrowDown) dy += 1;
-            if (keys.a || keys.ArrowLeft) dx -= 1;
-            if (keys.d || keys.ArrowRight) dx += 1;
+            if (keys.w || keys.arrowup) dy -= 1;
+            if (keys.s || keys.arrowdown) dy += 1;
+            if (keys.a || keys.arrowleft) dx -= 1;
+            if (keys.d || keys.arrowright) dx += 1;
 
             if (dx === 0 && dy === 0) {
                 // Dash towards mouse if not moving
@@ -1028,8 +1026,6 @@ class Player {
 
         this.health -= amount;
         this.shakeTimer = 0.15; // Trigger screen shake
-
-        // 乾坤一擲 (kenkon): 被弾時にダメージ反射
 
         // 乾坤一擲 (kenkon): 被弾時にダメージ反射
         if (this.reflectDamage) {
@@ -1464,8 +1460,8 @@ class Enemy {
             if (progress >= 0.3 && !this.hasDealtDamage) {
                 this.hasDealtDamage = true;
 
-                // Only do melee hits here. Projectiles and summons are already spawned at start.
-                if (this.attackShape !== 'summon' && this.attackShape !== 'teleport_burst' && this.attackShape !== 'spread') {
+                // Only do melee and burst hits here. Projectiles and summons are already spawned at start.
+                if (this.attackShape !== 'summon' && this.attackShape !== 'spread') {
                     if (this.checkHit(player.x, player.y, player.radius)) {
                         player.takeDamage(this.damage);
                     }
@@ -1775,18 +1771,8 @@ class Enemy {
             const sWidth = img.width / cols;
             const sHeight = img.height;
 
-            // --- Hit Flash Effect (Shader-like brightness) ---
             if (this.hitFlashTimer > 0) {
                 ctx.filter = 'brightness(3) contrast(1.5)';
-            }
-            // this.radius is the hitbox. Scale based on the original aspect ratio to avoid squishing.
-            const targetHeight = this.radius * 3; // Visual height is 3x the new radius
-            const drawScale = targetHeight / sHeight;
-            const dWidth = sWidth * drawScale;
-            const dHeight = targetHeight;
-
-            if (this.hitFlashTimer > 0) {
-                ctx.filter = 'brightness(200%)';
             }
 
             // Flip horizontally if moving/attacking towards the left
@@ -2501,6 +2487,10 @@ function endGame() {
     finalScoreBtn.textContent = score;
     finalLevelBtn.textContent = player.level;
     gameOverScreen.classList.add('active');
+
+    // Force extreme slow-mo on death
+    timeScale = 0.3; 
+    slowMoTimer = 5.0; 
 }
 
 function winGame() {
@@ -2510,6 +2500,10 @@ function winGame() {
     finalScoreBtn.textContent = score;
     finalLevelBtn.textContent = player.level;
     gameOverScreen.classList.add('active');
+
+    // Victory slow-mo
+    timeScale = 0.3;
+    slowMoTimer = 5.0;
 }
 
 function gameLoop(timestamp) {
@@ -2595,10 +2589,10 @@ function update(dt, rawDt) {
         // Calculate current max enemies based on time remaining or level
         let maxEnemies = 3 + Math.floor(player.level / 2);
 
-        // Increase density as time runs out
-        if (survivalTimer < 120) maxEnemies += 1;
-        if (survivalTimer < 60) maxEnemies += 2;
-        if (survivalTimer < 30) maxEnemies += 3;
+        // Increase density as time runs out (Progressive scaling for 60s timer)
+        if (survivalTimer < 45) maxEnemies += 1;
+        if (survivalTimer < 30) maxEnemies += 2;
+        if (survivalTimer < 15) maxEnemies += 3;
 
         // Cap max enemies to avoid performance issues
         maxEnemies = Math.min(maxEnemies, 15);
@@ -2749,9 +2743,6 @@ function draw() {
     // Apply grayscale filter on death
     if (player.health <= 0) {
         ctx.filter = 'grayscale(100%) contrast(1.2) brightness(0.8)';
-        // Force extreme slow-mo on death
-        timeScale = 0.05;
-        slowMoTimer = 1.0; 
     }
 
     // Clear Canvas
