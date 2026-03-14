@@ -329,8 +329,8 @@ class Player {
         this.x = canvas.width / 2;
         this.y = canvas.height / 2;
         this.radius = 15; // Hitbox
-        this.speed = 250; // pixels per second
-        this.color = '#e8dbce'; // Silver/Parchment armor highlight
+        this.speed = 320; // Increased from 250 for "Shissou-kan" (speedy feeling)
+        this.color = '#e8dbce'; 
         this.maxHealth = 100;
         this.health = this.maxHealth;
 
@@ -387,9 +387,9 @@ class Player {
         this.specialDuration = 0.8;
 
         // Evade (Dash)
-        this.evadeCooldown = 1.0;
+        this.evadeCooldown = 0.45; // Reduced from 0.6
         this.currentEvadeCooldown = 0;
-        this.evadeSpeedMultiplier = 3.5;
+        this.evadeSpeedMultiplier = 4.5; // Increased from 3.5 for more impact
         this.evadeDuration = 0.2;
         this.evadeTimer = 0;
         this.isEvading = false;
@@ -822,30 +822,11 @@ class Player {
             this.lastComboCount = this.comboCount; // Save for rendering
             this.comboTimer = this.comboWindow;
 
-            // Combo finisher (3rd hit) has longer cooldown
-            if (this.comboCount >= 3) {
-                this.currentAttackCooldown = this.attackCooldown * 1.5; // Longer recovery
-                this.comboTimer = 0; // End combo chain
-                this.comboCount = 0;
-            } else {
-                this.currentAttackCooldown = this.attackDuration + 0.05; // Small gap between combo hits
-            }
-
-            // Automatic critical chance from perks
-            if (this.baseCritChance > 0 && Math.random() < this.baseCritChance) {
-                this.hasCriticalNext = true;
-            }
-
-            // Hit detection & Logic
-            let closestEnemy = null;
-            let closestDist = Infinity;
-            enemies.forEach(enemy => {
-                const dist = getDistance(this.x, this.y, enemy.x, enemy.y);
-                if (dist < closestDist) {
-                    closestDist = dist;
-                    closestEnemy = enemy;
-                }
-            });
+            // --- 踏み込み (Step-in / Lunge) Logic ---
+            // Apply a burst of velocity in the direction of attack
+            const lungePower = this.comboCount === 3 ? 600 : 400; // Finishers lunge further
+            this.vx = Math.cos(this.attackAngle) * lungePower;
+            this.vy = Math.sin(this.attackAngle) * lungePower;
 
             if (closestEnemy) {
                 // Snap direction to the enemy
