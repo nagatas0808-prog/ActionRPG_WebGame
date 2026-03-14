@@ -605,7 +605,8 @@ class Player {
         const sHeight = img.height;
         
         // Dynamic scaling based on radius
-        const targetHeight = this.radius * 6; // visual size
+        // Increase visual presence to match or exceed enemies
+        const targetHeight = this.radius * 10; 
         const drawScale = targetHeight / sHeight;
         const dWidth = sWidth * drawScale;
         const dHeight = targetHeight;
