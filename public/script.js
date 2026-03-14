@@ -600,40 +600,38 @@ class Player {
 
         if (!img || !img.complete) return;
 
-        const cols = 10; // Back to 10 frames with clean v9 asset
+        const cols = 10; 
         const sWidth = img.width / cols;
         const sHeight = img.height;
-        const spriteW = 160; // Increased size for better presence
-        const spriteH = 160;
-
-        // Determine current animation frame (10-frame system):
-        // 0:Idle, 1:Run Forward, 2:Run Backward, 3:Fwd Dash, 4:Backstep, 5:Attack1, 6:Attack2, 7:Attack3, 8:Ougi, 9:Death
-        let frameX = 0; 
-        const facing = this.facingRight ? 1 : -1; // 1 for right, -1 for left
         
-        if (this.health <= 0) {
-            frameX = 9; // Death (v9)
-        } else if (this.isSpecialAttacking) {
-            frameX = 8; // Ougi (v9)
-        } else if (this.isAttacking) {
-            // Map 1-indexed comboCount (1,2,3) to v9 frames (5, 6, 7)
+        // Dynamic scaling based on radius
+        const targetHeight = this.radius * 6; // visual size
+        const drawScale = targetHeight / sHeight;
+        const dWidth = sWidth * drawScale;
+        const dHeight = targetHeight;
+
+        // Determine current animation frame (10-frame system)
+        let frameX = 0; 
+        const facing = this.facingRight ? 1 : -1; 
+        
+        if (this.health <= 0) frameX = 9; 
+        else if (this.isSpecialAttacking) frameX = 8; 
+        else if (this.isAttacking) {
             frameX = 4 + this.lastComboCount; 
         } else if (this.isEvading) {
             const moveAngle = Math.atan2(this.vy, this.vx);
             const facingAngle = facing === 1 ? 0 : Math.PI;
             const diff = Math.abs(moveAngle - facingAngle);
             const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
-            frameX = isMovingForward ? 3 : 4; // 3: DashF, 4: Backstep (v9)
-        } else if (isMoving) { // Running
-            // Determine if running forward or backward relative to facing
+            frameX = isMovingForward ? 3 : 4; 
+        } else if (isMoving) { 
             const moveAngle = Math.atan2(this.vy, this.vx);
             const facingAngle = facing === 1 ? 0 : Math.PI;
             const diff = Math.abs(moveAngle - facingAngle);
             const isMovingForward = diff < Math.PI / 2 || diff > (Math.PI * 3) / 2;
-            
-            frameX = isMovingForward ? 1 : 2; // 1: Run Forward, 2: Run Backward
+            frameX = isMovingForward ? 1 : 2; 
         } else {
-            frameX = 0; // Idle
+            frameX = 0; 
         }
 
         // --- Draw Afterimage Trail ---
@@ -657,7 +655,7 @@ class Player {
                 ctx.filter = 'sepia(1) hue-rotate(180deg) saturate(2) brightness(1.5)';
             }
             
-            ctx.drawImage(img, tr.frame * sWidth, 0, sWidth, sHeight, -spriteW / 2, -spriteH * 0.75, spriteW, spriteH);
+            ctx.drawImage(img, tr.frame * sWidth, 0, sWidth, sHeight, -dWidth / 2, -dHeight * 0.85, dWidth, dHeight);
             ctx.filter = 'none';
             ctx.restore();
         }
@@ -681,14 +679,13 @@ class Player {
         ctx.fill();
 
         // --- 2. Ambient Aura Particles ---
-        // (保持: Aura particles and Critical graphics logic)
-        if (!this.isStunned) {
+        if (!this.isStunned && this.health > 0) {
             const particleCount = this.hasCriticalNext ? 8 : 3;
             for (let i = 0; i < particleCount; i++) {
                 const angle = (t * 0.002 + i * (Math.PI * 2 / particleCount)) % (Math.PI * 2);
                 const orbitR = 18 + Math.sin(t * 0.003 + i) * 6;
                 const px = this.x + Math.cos(angle) * orbitR;
-                const py = (this.y - spriteH * 0.3) + Math.sin(angle) * orbitR * 0.4;
+                const py = (this.y - dHeight * 0.4) + Math.sin(angle) * orbitR * 0.4;
                 const pSize = 1.5 + Math.sin(t * 0.005 + i * 2) * 1;
 
                 ctx.beginPath();
@@ -707,10 +704,10 @@ class Player {
             }
         }
 
-        if (this.hasCriticalNext) {
+        if (this.hasCriticalNext && this.health > 0) {
             ctx.beginPath();
-            ctx.ellipse(this.x, this.y - spriteH * 0.35, 25, 35, 0, 0, Math.PI * 2);
-            const auraGrad = ctx.createRadialGradient(this.x, this.y - spriteH * 0.35, 5, this.x, this.y - spriteH * 0.35, 35);
+            ctx.ellipse(this.x, this.y - dHeight * 0.45, 25, 35, 0, 0, Math.PI * 2);
+            const auraGrad = ctx.createRadialGradient(this.x, this.y - dHeight * 0.45, 5, this.x, this.y - dHeight * 0.45, 35);
             auraGrad.addColorStop(0, 'rgba(255,215,0,0.15)');
             auraGrad.addColorStop(0.7, 'rgba(255,215,0,0.05)');
             auraGrad.addColorStop(1, 'rgba(255,215,0,0)');
@@ -729,11 +726,13 @@ class Player {
             ctx.globalAlpha = Math.max(0.3, ctx.globalAlpha * 0.5);
         }
 
-        // Draw current frame from simplified single-row sprite sheet
-        ctx.drawImage(img, frameX * sWidth, 0, sWidth, sHeight, -spriteW / 2, -spriteH * 0.75, spriteW, spriteH);
-        
+        // --- Main Character Body ---
+        const sx = Math.floor(frameX * sWidth);
+        const sy = 0;
+
+        ctx.drawImage(img, sx, sy, Math.floor(sWidth), Math.floor(sHeight), -dWidth / 2, -dHeight * 0.85, dWidth, dHeight);
+
         ctx.restore();
-        ctx.restore(); // main save
 
         // --- 5. Slash Arc Effect ---
         if (this.isAttacking) {
