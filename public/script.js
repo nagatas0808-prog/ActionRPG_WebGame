@@ -1133,9 +1133,9 @@ class Enemy {
             this.attackRadius = 270; // 1.5x originally 180
             this.attackShape = 'cone';
             this.attackWidth = Math.PI / 2;
-            this.attackWarningTime = 1.0; // Reduced from 1.5
-            this.attackDuration = 0.4;
-            this.attackCooldown = 1.8; // Reduced from 3.0
+            this.attackWarningTime = 0.7; // Reduced from 1.0 (Harder to react)
+            this.attackDuration = 0.3;    // Reduced from 0.4 (Faster swing)
+            this.attackCooldown = 1.2;    // Reduced from 1.8 (More frequent)
 
         } else if (type === 'orc') {
             this.radius = 54; // 3x originally 18
@@ -1471,8 +1471,8 @@ class Enemy {
             if (this.attackTimer <= 0) {
                 this.isAttacking = false;
                 this.hasDealtDamage = false;
-                // Faster recovery in phase 2 (0.4x instead of 0.6x for relentless attacks)
-                this.currentCooldown = this.type === 'boss' && this.bossPhase === 2 ? this.attackCooldown * 0.4 : this.attackCooldown;
+                // Even faster recovery in phase 2 (0.3x instead of 0.4x for extreme relentless attacks)
+                this.currentCooldown = this.type === 'boss' && this.bossPhase === 2 ? this.attackCooldown * 0.3 : this.attackCooldown;
             }
         } else {
             // Movement logic
