@@ -1771,9 +1771,15 @@ class Enemy {
             const sWidth = img.width / cols;
             const sHeight = img.height;
 
+            // --- Hit Flash Effect (Shader-like brightness) ---
             if (this.hitFlashTimer > 0) {
                 ctx.filter = 'brightness(3) contrast(1.5)';
             }
+            // this.radius is the hitbox. Scale based on the original aspect ratio to avoid squishing.
+            const targetHeight = this.radius * 3; // Visual height is 3x the new radius
+            const drawScale = targetHeight / sHeight;
+            const dWidth = sWidth * drawScale;
+            const dHeight = targetHeight;
 
             // Flip horizontally if moving/attacking towards the left
             if (player.x < this.x && this.attackShape !== 'spread') {
