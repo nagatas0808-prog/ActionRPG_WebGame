@@ -393,18 +393,13 @@ let canvasScaleX = 1;
 let canvasScaleY = 1;
 
 function resizeCanvas() {
-    const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     
-    // Set internal buffer size based on actual display size and DPR for crisp rendering
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    // Maintain internal buffer at fixed 800x600
+    canvas.width = LOGICAL_WIDTH;
+    canvas.height = LOGICAL_HEIGHT;
     
-    // Scale context back to logical pixels (800x600 coordinate system)
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
-    ctx.scale(canvas.width / LOGICAL_WIDTH, canvas.height / LOGICAL_HEIGHT);
-    
-    // Internal coordinate scaling for input handling
+    // Internal coordinate scaling for input handling (Mapping display pixels to logical pixels)
     canvasScaleX = LOGICAL_WIDTH / rect.width;
     canvasScaleY = LOGICAL_HEIGHT / rect.height;
 }
