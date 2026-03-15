@@ -525,11 +525,11 @@ button {
 /* Mobile Controls (Virtual Pad) */
 #mobile-controls {
     position: fixed; /* Changed to fixed to ensure it stays at bottom of screen */
-    bottom: 20px;
-    bottom: calc(env(safe-area-inset-bottom) + 20px);
+    bottom: 80px; /* Increased significantly to avoid clipping on all devices */
+    bottom: calc(env(safe-area-inset-bottom) + 80px);
     left: 0;
     width: 100%;
-    height: auto;
+    height: 120px;
     display: flex;
     justify-content: space-between;
     align-items: center;
