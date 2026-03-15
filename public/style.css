@@ -633,17 +633,22 @@ button {
 @media (max-width: 900px) {
     #game-container {
         width: 100vw;
-        height: 100vh;
+        height: auto;
+        /* 新旧ブラウザ両対応のアスペクト比維持 */
+        aspect-ratio: 4 / 3;
+        max-height: calc(100vh - 200px); /* 下部の操作エリアを確保する安全装置 */
         border: none;
         border-radius: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: auto;
     }
     
     #gameCanvas {
-        max-height: 80vh;
         width: 100%;
+        height: 100%;
+        max-height: none; /* コンテナ側で制限するので解放 */
         object-fit: contain;
     }
 
@@ -651,7 +656,8 @@ button {
     .screen h2 { font-size: 24px; }
     
     .top-bar { 
-        top: calc(env(safe-area-inset-top) + 20px); /* モバイルでも少し下げる */
+        /* ゲーム画面の最上部、かつノッチも考慮 */
+        top: calc(env(safe-area-inset-top) + 5px);
         left: 20px; 
         right: 20px; 
     }
