@@ -2943,10 +2943,21 @@ function draw() {
     ctx.stroke();
 
     // Sort objects by their Y position (for depth sorting)
-    const renderQueue = [player, ...enemies, ...envObjects, ...projectiles];
-    renderQueue.sort((a, b) => a.y - b.y);
+    const renderQueue = [];
+    if (player) renderQueue.push(player);
+    if (enemies) renderQueue.push(...enemies);
+    if (envObjects) renderQueue.push(...envObjects);
+    if (projectiles) renderQueue.push(...projectiles);
+    
+    renderQueue.sort((a, b) => {
+        const ay = a && typeof a.y === 'number' ? a.y : 0;
+        const by = b && typeof b.y === 'number' ? b.y : 0;
+        return ay - by;
+    });
 
-    renderQueue.forEach(obj => obj.draw(ctx));
+    renderQueue.forEach(obj => {
+        if (obj && typeof obj.draw === 'function') obj.draw(ctx);
+    });
 
     // --- Dynamic Lighting (Player Aura) ---
     if (gameState === 'playing' || gameState === 'bossfight') {
