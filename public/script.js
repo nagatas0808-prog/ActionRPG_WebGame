@@ -219,113 +219,89 @@ let joystickActive = false;
 let joystickAnchor = { x: 0, y: 0 };
 let joystickMove = { x: 0, y: 0 };
 
-// --- Mobile Touch Events ---
-if (isMobile) {
-    // Joystick handling
-    joystickBase.addEventListener('touchstart', e => {
-        joystickActive = true;
-        const touch = e.touches[0];
-        const rect = joystickBase.getBoundingClientRect();
-        joystickAnchor = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-        };
+// --- Mobile Touch Events (Enhanced) ---
+const handleJoystickStart = e => {
+    joystickActive = true;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = joystickBase.getBoundingClientRect();
+    joystickAnchor = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+    };
+    if (e.touches) e.preventDefault();
+};
+
+const handleJoystickMove = e => {
+    if (!joystickActive) return;
+    const touch = e.touches ? e.touches[0] : e;
+
+    const dx = touch.clientX - joystickAnchor.x;
+    const dy = touch.clientY - joystickAnchor.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxRadius = 40;
+
+    const ratio = Math.min(dist, maxRadius) / (dist || 1);
+    const finalX = dx * ratio;
+    const finalY = dy * ratio;
+
+    joystickKnob.style.transform = `translate(${finalX}px, ${finalY}px)`;
+    
+    // Update key states for movement
+    const threshold = 10;
+    keys.w = finalY < -threshold;
+    keys.s = finalY > threshold;
+    keys.a = finalX < -threshold;
+    keys.d = finalX > threshold;
+    
+    keys.arrowup = keys.w;
+    keys.arrowdown = keys.s;
+    keys.arrowleft = keys.a;
+    keys.arrowright = keys.d;
+    
+    if (e.touches) e.preventDefault();
+};
+
+const handleJoystickEnd = () => {
+    joystickActive = false;
+    joystickKnob.style.transform = `translate(0px, 0px)`;
+    keys.w = keys.s = keys.a = keys.d = false;
+    keys.arrowup = keys.arrowdown = keys.arrowleft = keys.arrowright = false;
+};
+
+// Register events for both touch and mouse (for debugging)
+joystickBase.addEventListener('touchstart', handleJoystickStart, { passive: false });
+window.addEventListener('touchmove', handleJoystickMove, { passive: false });
+window.addEventListener('touchend', handleJoystickEnd);
+window.addEventListener('touchcancel', handleJoystickEnd); // [P3] Fix stuck state
+
+// --- Action Buttons (Mobile) ---
+const btnAttack = document.getElementById('btn-attack');
+const btnEvade = document.getElementById('btn-evade');
+const btnSpecial = document.getElementById('btn-special');
+
+const setupMobileBtn = (el, callback) => {
+    if (!el) return;
+    el.addEventListener('touchstart', e => {
         e.preventDefault();
+        callback();
     }, { passive: false });
-
-    window.addEventListener('touchmove', e => {
-        if (!joystickActive) return;
-        // Find the touch that started the joystick
-        let touch = null;
-        for(let i=0; i<e.touches.length; i++) {
-            const t = e.touches[i];
-            const dx = t.clientX - joystickAnchor.x;
-            const dy = t.clientY - joystickAnchor.y;
-            if (Math.sqrt(dx*dx + dy*dy) < 150) { // reasonable distance
-                touch = t;
-                break;
-            }
-        }
-        if (!touch) return;
-
-        const dx = touch.clientX - joystickAnchor.x;
-        const dy = touch.clientY - joystickAnchor.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxRadius = 40;
-
-        const ratio = Math.min(dist, maxRadius) / dist;
-        const finalX = dist > 0 ? dx * ratio : 0;
-        const finalY = dist > 0 ? dy * ratio : 0;
-
-        joystickKnob.style.transform = `translate(${finalX}px, ${finalY}px)`;
-        
-        // Update key states for movement
-        const threshold = 10;
-        keys.w = finalY < -threshold;
-        keys.s = finalY > threshold;
-        keys.a = finalX < -threshold;
-        keys.d = finalX > threshold;
-        
-        // Also support arrow keys
-        keys.arrowup = keys.w;
-        keys.arrowdown = keys.s;
-        keys.arrowleft = keys.a;
-        keys.arrowright = keys.d;
-        
-        e.preventDefault();
-    }, { passive: false });
-
-    window.addEventListener('touchend', e => {
-        if (joystickActive) {
-            // Check if any touch is still likely to be the joystick touch
-            let joystickStillActive = false;
-            for(let i=0; i<e.touches.length; i++) {
-                const t = e.touches[i];
-                const dx = t.clientX - joystickAnchor.x;
-                const dy = t.clientY - joystickAnchor.y;
-                if (Math.sqrt(dx*dx + dy*dy) < 150) {
-                    joystickStillActive = true;
-                    break;
-                }
-            }
-
-            if (!joystickStillActive) {
-                joystickActive = false;
-                joystickKnob.style.transform = `translate(0px, 0px)`;
-                keys.w = keys.s = keys.a = keys.d = false;
-                keys.arrowup = keys.arrowdown = keys.arrowleft = keys.arrowright = false;
-            }
-        }
+    el.addEventListener('click', e => {
+        if (e.pointerType !== 'touch') callback();
     });
+};
 
-    // Add touch listeners for Action Buttons to dismiss tutorial as well
-    const actionBtns = ['btn-attack', 'btn-evade', 'btn-special'];
-    actionBtns.forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('touchstart', (e) => {
-                if (gameState === 'tutorial') {
-                    dismissTutorial();
-                }
-            });
-        }
-    });
-    // Action buttons
-    document.getElementById('btn-attack').addEventListener('touchstart', e => {
-        handleAttackInput();
-        e.preventDefault();
-    }, { passive: false });
+setupMobileBtn(btnAttack, handleAttackInput);
+setupMobileBtn(btnEvade, handleEvadeInput);
+setupMobileBtn(btnSpecial, handleSpecialInput);
 
-    document.getElementById('btn-evade').addEventListener('touchstart', e => {
-        handleEvadeInput();
+// Re-check mobile tutorial dismissal
+const tutorialScreen = document.getElementById('tutorial-screen');
+tutorialScreen.addEventListener('touchstart', e => {
+    if (gameState === 'tutorial') {
         e.preventDefault();
-    }, { passive: false });
-
-    document.getElementById('btn-special').addEventListener('touchstart', e => {
-        handleSpecialInput();
-        e.preventDefault();
-    }, { passive: false });
-}
+        dismissTutorial();
+    }
+}, { passive: false });
 
 // --- Event Listeners ---
 const lastKeyTimes = { w: 0, a: 0, s: 0, d: 0, arrowup: 0, arrowleft: 0, arrowdown: 0, arrowright: 0 };
@@ -410,23 +386,95 @@ window.addEventListener('keyup', e => {
     if (e.key === ' ') keys[' '] = false;
     if (e.key === 'Shift') keys['shift'] = false; // Ensure shift key state is tracked
 });
-canvas.addEventListener('mousemove', e => {
+// --- Resolution & Coordinate Management ---
+const LOGICAL_WIDTH = 800;
+const LOGICAL_HEIGHT = 600;
+let canvasScaleX = 1;
+let canvasScaleY = 1;
+
+function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
+    
+    // Set internal buffer size based on actual display size and DPR for crisp rendering
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    // Scale context back to logical pixels (800x600 coordinate system)
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset
+    ctx.scale(canvas.width / LOGICAL_WIDTH, canvas.height / LOGICAL_HEIGHT);
+    
+    // Internal coordinate scaling for input handling
+    canvasScaleX = LOGICAL_WIDTH / rect.width;
+    canvasScaleY = LOGICAL_HEIGHT / rect.height;
+}
+
+function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+    
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    return {
+        x: (clientX - rect.left) * canvasScaleX,
+        y: (clientY - rect.top) * canvasScaleY
+    };
+}
+
+// Initial resize and listen to window changes
+window.addEventListener('resize', () => {
+    resizeCanvas();
+    updateMobileUI();
 });
-canvas.addEventListener('mousedown', e => {
-    if (e.button === 0) { mouse.left = true; handleAttackInput(); }
-    if (e.button === 2) {
+resizeCanvas();
+
+// --- Input Event Handlers (Unified) ---
+canvas.addEventListener('mousemove', e => {
+    const coords = getCanvasCoords(e);
+    mouse.x = coords.x;
+    mouse.y = coords.y;
+});
+
+const handleUnifiedDown = e => {
+    const coords = getCanvasCoords(e);
+    mouse.x = coords.x;
+    mouse.y = coords.y;
+    
+    // If it's a touch event, it might be an attack
+    const isPrimaryAction = (e.type === 'mousedown' && e.button === 0) || e.type === 'touchstart';
+    const isSecondaryAction = (e.type === 'mousedown' && e.button === 2);
+
+    if (isPrimaryAction) {
+        mouse.left = true;
+        handleAttackInput();
+    }
+    if (isSecondaryAction) {
         mouse.right = true;
-        // Right click now triggers Special Attack instead of evade
         handleSpecialInput();
     }
-});
-canvas.addEventListener('mouseup', e => {
+    
+    // Prevent double fire on some mobile browsers
+    if (e.type === 'touchstart') e.preventDefault();
+};
+
+canvas.addEventListener('mousedown', handleUnifiedDown);
+canvas.addEventListener('touchstart', handleUnifiedDown, { passive: false });
+
+window.addEventListener('mouseup', e => {
     if (e.button === 0) mouse.left = false;
     if (e.button === 2) mouse.right = false;
 });
+window.addEventListener('touchend', e => {
+    mouse.left = false;
+    mouse.right = false;
+});
+
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 startBtn.addEventListener('click', () => showTutorial());
