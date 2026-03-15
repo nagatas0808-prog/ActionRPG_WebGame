@@ -30,7 +30,7 @@ const joystickBase = document.getElementById('joystick-base');
 
 function updateMobileUI() {
     isMobile = checkMobile();
-    if (isMobile && (gameState === 'playing' || gameState === 'bossfight')) {
+    if (isMobile) {
         mobileControls.style.display = 'flex';
         mobileControls.classList.add('active');
     } else {
