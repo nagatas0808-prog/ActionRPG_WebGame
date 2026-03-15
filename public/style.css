@@ -279,6 +279,7 @@ h2 {
     transition: opacity 0.3s, visibility 0.3s;
     text-align: center;
     z-index: 200; /* Ensure screens are above other UI elements */
+    pointer-events: auto; /* Ensure buttons in screens are clickable despite parent none */
 }
 
 .full-center {
