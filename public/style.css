@@ -244,6 +244,7 @@ button {
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
     text-align: center;
+    z-index: 100; /* Ensure screens are above other UI elements */
 }
 
 .full-center {
@@ -533,10 +534,11 @@ button {
     padding: 0 40px;
     z-index: 50;
     pointer-events: none; /* Area itself is transparent to clicks */
+    display: none !important; /* Hidden by default, script will show it */
 }
 
-#mobile-controls.hide {
-    display: none !important;
+#mobile-controls.active {
+    display: flex !important;
 }
 
 #joystick-area {

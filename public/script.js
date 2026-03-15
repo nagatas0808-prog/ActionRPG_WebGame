@@ -30,12 +30,12 @@ const joystickBase = document.getElementById('joystick-base');
 
 function updateMobileUI() {
     isMobile = checkMobile();
-    if (isMobile) {
-        mobileControls.classList.remove('hide');
+    if (isMobile && (gameState === 'playing' || gameState === 'bossfight')) {
         mobileControls.style.display = 'flex';
+        mobileControls.classList.add('active');
     } else {
-        mobileControls.classList.add('hide');
         mobileControls.style.display = 'none';
+        mobileControls.classList.remove('active');
     }
 }
 
@@ -2582,6 +2582,7 @@ function showTutorial() {
 function dismissTutorial() {
     document.getElementById('tutorial-screen').classList.remove('active');
     startGame(); // This now starts with countdown
+    updateMobileUI(); // Trigger UI update to show controls if playing
 }
 
 function startGame() {
@@ -2690,6 +2691,10 @@ function gameLoop(timestamp) {
     if (gameState === 'title' || gameState === 'gameover') {
         // ゲームオーバーやタイトル画面ではループを停止してCPU消費を防ぐ
         gameLoopId = null;
+        // However, we still want to draw the background for title/tutorial
+        // So, we call draw() before returning, and draw() will handle its own state checks.
+        // This ensures the canvas is cleared and background is drawn even when gameLoop is paused.
+        draw(); 
         return;
     }
 
