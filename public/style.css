@@ -534,11 +534,11 @@ button {
     padding: 0 40px;
     z-index: 50;
     pointer-events: none; /* Area itself is transparent to clicks */
-    display: none !important; /* Hidden by default, script will show it */
+    display: none; /* Removed !important to allow JS control */
 }
 
 #mobile-controls.active {
-    display: flex !important;
+    display: flex;
 }
 
 #joystick-area {
