@@ -2768,7 +2768,7 @@ function winGame() {
 }
 
 function shareOnX() {
-    const text = `剣戟の軌跡 -JUST EVASION- で力尽きた...\n到達レベル: ${player ? player.level : 1}\n最終討伐数: ${score}pt\n#ActionRPG #WebGame #JustEvasion\n`;
+    const text = `剣戟の軌跡 -JUST EVASION- で力尽きた...\n到達レベル: ${player ? player.level : 1}\n最終討伐数: ${score}pt\n#剣戟の軌跡 #アンチグラビティ #バイブコーディング #JustEvasion\n`;
     const url = window.location.href;
     const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     window.open(shareUrl, '_blank');
