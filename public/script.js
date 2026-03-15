@@ -32,8 +32,10 @@ function updateMobileUI() {
     isMobile = checkMobile();
     if (isMobile) {
         mobileControls.classList.remove('hide');
+        mobileControls.style.display = 'flex';
     } else {
         mobileControls.classList.add('hide');
+        mobileControls.style.display = 'none';
     }
 }
 
