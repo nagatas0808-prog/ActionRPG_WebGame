@@ -25,23 +25,28 @@
     <div id="game-container">
         <!-- UI Overlay -->
         <div id="ui-layer">
-            <div class="top-bar">
-                <div class="stats">
-                    <span class="stat-label">TIME: <span id="survival-timer">1:00</span></span>
-                    <span class="stat-label">討伐数: <span id="score">0</span></span>
-                    <span class="stat-label">Lv: <span id="player-level">1</span></span>
+            <div id="game-view-scaler">
+                <div class="top-bar">
+                    <div class="stats">
+                        <span class="stat-label">TIME: <span id="survival-timer">1:00</span></span>
+                        <span class="stat-label">討伐数: <span id="score">0</span></span>
+                        <span class="stat-label">Lv: <span id="player-level">1</span></span>
+                    </div>
+                    <div class="bars">
+                        <div class="bar-container hp-container">
+                            <div id="health-bar" class="bar hp"></div>
+                        </div>
+                        <div class="bar-container exp-container">
+                            <div id="exp-bar" class="bar exp"></div>
+                        </div>
+                        <div class="bar-container sp-container">
+                            <div id="special-bar" class="bar sp"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bars">
-                    <div class="bar-container hp-container">
-                        <div id="health-bar" class="bar hp"></div>
-                    </div>
-                    <div class="bar-container exp-container">
-                        <div id="exp-bar" class="bar exp"></div>
-                    </div>
-                    <div class="bar-container sp-container">
-                        <div id="special-bar" class="bar sp"></div>
-                    </div>
-                </div>
+
+                <!-- Game Canvas -->
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
             </div>
 
             <!-- Boss HP Bar (Hidden by default) -->
@@ -51,120 +56,6 @@
                     <div id="boss-hp-bar" class="bar boss-hp"></div>
                 </div>
             </div>
-
-            <div id="message-display"></div>
-
-            <!-- Warning Overlay -->
-            <div id="warning-overlay" class="screen full-center hide">
-                <h1 class="glitch-warning" data-text="WARNING">WARNING</h1>
-                <p class="warning-sub">BOSS APPROACHING</p>
-            </div>
-
-            <!-- Tutorial Overlay -->
-            <div id="tutorial-screen" class="screen full-center">
-                <h2 style="font-size:36px; margin-bottom:30px;">操作説明</h2>
-                <div class="tutorial-grid">
-                    <div class="tutorial-item">
-                        <div class="tutorial-keys">
-                            <span class="key-cap">W</span><span class="key-cap">A</span><span
-                                class="key-cap">S</span><span class="key-cap">D</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">↑</span><span class="key-cap">←</span><span
-                                class="key-cap">↓</span><span class="key-cap">→</span>
-                        </div>
-                        <p class="tutorial-label">移動</p>
-                    </div>
-                    <div class="tutorial-item">
-                        <div class="tutorial-keys">
-                            <span class="key-cap">Space</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">J</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">左クリック</span>
-                        </div>
-                        <p class="tutorial-label">攻撃（3段コンボ）</p>
-                    </div>
-                    <div class="tutorial-item">
-                        <div class="tutorial-keys">
-                            <span class="key-cap">Shift</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">K</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">方向キー2回</span>
-                        </div>
-                        <p class="tutorial-label">回避（ジャスト回避で反撃チャンス！）</p>
-                    </div>
-                    <div class="tutorial-item">
-                        <div class="tutorial-keys">
-                            <span class="key-cap">L</span>
-                            <span class="tutorial-or">or</span>
-                            <span class="key-cap">右クリック</span>
-                        </div>
-                        <p class="tutorial-label">奥義（SPゲージ満タン時）</p>
-                    </div>
-                    <div class="tutorial-item">
-                        <div class="tutorial-keys">
-                            <span class="key-cap">Tab</span>
-                        </div>
-                        <p class="tutorial-label">ロックオン切替</p>
-                    </div>
-                </div>
-                <p class="blink-text" style="margin-top:30px; font-size:1.2em; color:var(--primary-color);">Press Any
-                    Key to Start</p>
-            </div>
-
-            <!-- Countdown Overlay (Canvas-drawn, this is just a state container) -->
-            <div id="countdown-overlay" class="hide"></div>
-
-            <!-- Screens -->
-            <div id="title-screen" class="screen full-center active">
-                <h1 class="glitch" data-text="剣戟の軌跡 -JUST EVASION-">剣戟の軌跡<br><span
-                        style="font-size: 0.5em; letter-spacing: 5px;">-JUST EVASION-</span></h1>
-                <p class="subtitle">WASD/矢印で移動 | Space/Jで攻撃 | Shift/Kで回避 | Lで奥義</p>
-                <p class="highlight-text">敵の攻撃発生の瞬間に回避し、強力な反撃を叩き込め！</p>
-                <p class="blink-text" style="margin-top:20px; font-size:1.2em; color:var(--primary-color);">Press ENTER
-                    to Start</p>
-                <button id="start-btn" class="neon-btn">冒険へ出発</button>
-            </div>
-
-            <!-- Game Over Screen -->
-            <div id="game-over-screen" class="screen full-center hide">
-                <h2>GAME OVER - 力尽きた...</h2>
-                <p>最終討伐数: <span id="final-score">0</span></p>
-                <p>到達Lv: <span id="final-level">1</span></p>
-                <p class="blink-text" style="margin-top:20px; font-size:1.2em; color:var(--primary-color);">Press ENTER
-                    to Restart</p>
-                <button id="restart-btn" class="neon-btn">再挑戦</button>
-                <button id="share-btn" class="neon-btn share-btn" style="margin-top:10px; background:#1da1f2; border-color:#1da1f2; color:white;">Xで結果をポスト</button>
-            </div>
-
-            <!-- Level Up Screen -->
-            <div id="levelup-screen" class="screen full-center hide">
-                <h2 style="font-size:36px; margin-bottom:20px;">ランクアップ - 恩恵を選択せよ</h2>
-                <div id="perk-container" class="upgrade-options">
-                    <!-- Buttons will be generated here -->
-                </div>
-                <p class="blink-text" style="margin-top:20px; font-size:1.0em; color:var(--primary-color);">Press ENTER to Select</p>
-            </div>
-
-        </div>
-        
-        <!-- Mobile Controls (Virtual Pad) - Moved outside ui-layer for better stacking -->
-        <div id="mobile-controls" class="hide">
-            <div id="joystick-area">
-                <div id="joystick-base">
-                    <div id="joystick-knob"></div>
-                </div>
-            </div>
-            <div id="action-area">
-                <div id="btn-special" class="mobile-btn sp-btn">奥義</div>
-                <div id="btn-evade" class="mobile-btn evade-btn">回避</div>
-                <div id="btn-attack" class="mobile-btn attack-btn">攻撃</div>
-            </div>
-        </div>
-
-        <!-- Game Canvas -->
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
     </div>
 
     <script src="script.js?v=10"></script>
