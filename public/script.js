@@ -30,7 +30,8 @@ const joystickBase = document.getElementById('joystick-base');
 
 function updateMobileUI() {
     isMobile = checkMobile();
-    if (isMobile) {
+    // Show only during active gameplay to avoid overlapping with menus
+    if (isMobile && (gameState === 'playing' || gameState === 'bossfight')) {
         mobileControls.style.display = 'flex';
         mobileControls.classList.add('active');
     } else {
