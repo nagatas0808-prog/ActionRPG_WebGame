@@ -2567,6 +2567,12 @@ function showTutorial() {
     titleScreen.classList.remove('active');
     document.getElementById('tutorial-screen').classList.add('active');
     
+    // Ensure game loop is running for background scenery during tutorial
+    if (!gameLoopId) {
+        lastTime = performance.now();
+        gameLoopId = requestAnimationFrame(gameLoop);
+    }
+    
     // Add one-time mobile touch listener to dismiss tutorial
     if (isMobile) {
         const dismissHandler = () => {
