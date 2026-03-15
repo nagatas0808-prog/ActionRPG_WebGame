@@ -111,6 +111,7 @@ const sfx = {
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
         noise.start();
+        noise.stop(audioCtx.currentTime + 0.1);
     },
     playEvade: () => {
         if (!audioCtx) return;
@@ -157,7 +158,7 @@ const sfx = {
 };
 
 // Game State
-let gameState = 'title'; // 'title', 'tutorial', 'countdown', 'playing', 'levelup', 'bosstransition', 'bossfight', 'gameover'
+let gameState = 'title'; // 'title', 'tutorial', 'countdown', 'playing', 'levelup', 'bossfight', 'gameover'
 let previousGameState = 'title'; // To remember state when pausing for level up
 let gameLoopId = null; // Track animation frame to prevent duplicate loops
 let score = 0;
@@ -185,7 +186,7 @@ let bossAlertFlashEl = null; // DOM element for red flash
 const keys = {
     w: false, a: false, s: false, d: false,
     arrowup: false, arrowleft: false, arrowdown: false, arrowright: false,
-    j: false, k: false, l: false, ' ': false
+    j: false, k: false, l: false, ' ': false, shift: false // Add shift to keys object
 };
 const mouse = { x: 0, y: 0, left: false, right: false };
 let currentPerkIndex = 0; // For keyboard navigation of levelup perks
@@ -200,7 +201,9 @@ window.addEventListener('keydown', e => {
 
     // Register key press first so evade logic knows the direction
     if (keys.hasOwnProperty(key)) keys[key] = true;
-    if (e.key === ' ') keys[' '] = true; // Spacebar support
+    // Handle space and shift specifically if they are not directly in the keys object
+    if (e.key === ' ') keys[' '] = true;
+    if (e.key === 'Shift') keys['shift'] = true; // Ensure shift key state is tracked
 
     // Double tap detection for WASD and Arrows
     const moves = ['w', 'a', 's', 'd', 'arrowup', 'arrowleft', 'arrowdown', 'arrowright'];
@@ -222,7 +225,7 @@ window.addEventListener('keydown', e => {
     }
 
     // Allow J or Space for Attack
-    if (e.key === 'j' || e.key === 'j' || e.key === ' ') handleAttackInput();
+    if (key === 'j' || key === ' ') handleAttackInput();
 
     // Allow K or Shift for Evade
     if (key === 'k' || key === 'shift') handleEvadeInput();
@@ -266,8 +269,10 @@ window.addEventListener('keydown', e => {
     }
 });
 window.addEventListener('keyup', e => {
-    if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false;
+    const key = e.key.toLowerCase(); // Use a local variable for key
+    if (keys.hasOwnProperty(key)) keys[key] = false;
     if (e.key === ' ') keys[' '] = false;
+    if (e.key === 'Shift') keys['shift'] = false; // Ensure shift key state is tracked
 });
 canvas.addEventListener('mousemove', e => {
     const rect = canvas.getBoundingClientRect();
@@ -909,6 +914,7 @@ class Player {
     }
 
     useSpecial() {
+        if (this.isStunned || this.isEvading || this.isAttacking || this.isSpecialAttacking) return;
         this.isSpecialAttacking = true;
         this.specialTimer = this.specialDuration;
         this.specialGauge = 0;
@@ -945,6 +951,7 @@ class Player {
     }
 
     evade() {
+        if (this.isStunned) return;
         if (this.currentEvadeCooldown <= 0 && !this.isEvading) {
             this.isEvading = true;
             this.evadeTimer = this.evadeDuration;
@@ -1819,7 +1826,7 @@ class Enemy {
     }
 
     takeDamage(amount) {
-        if (this.hp <= 0) return;
+        if (this.hp <= 0 || this.isTeleporting) return;
         this.hp -= amount;
         this.hitFlashTimer = 0.1; // 100ms flash
 
@@ -1828,7 +1835,13 @@ class Enemy {
             timeScale = 0.05;
             slowMoTimer = 0.05; // Very brief pause
         }
-        damageTexts.push(new DamageText(this.x, this.y - this.radius, Math.round(amount)));
+        
+        // Damage Text limit to prevent performance spike
+        const MAX_DAMAGE_TEXTS = 50;
+        if (damageTexts.length < MAX_DAMAGE_TEXTS) {
+            damageTexts.push(new DamageText(this.x, this.y - this.radius, Math.round(amount)));
+        }
+        
         sfx.playHit();
 
         if (this.type === 'boss') {
@@ -1866,7 +1879,7 @@ class Enemy {
     spawnMinions(count) {
         // Cap total enemies on screen to prevent runaway spawns
         const maxEnemies = 15;
-        const available = maxEnemies - enemies.length;
+        const available = enemies.length < maxEnemies ? maxEnemies - enemies.length : 0;
         if (available <= 0) return;
         count = Math.min(count, available);
 
@@ -2068,6 +2081,7 @@ class Projectile {
         this.explosionTimer = 0;
         this.explosionDuration = 0.4;
         this.explosionRadius = radius * 6; // How big the explosion gets
+        this.hasHit = false; // Initialize hasHit flag
     }
 
     update(dt) {
@@ -2425,7 +2439,7 @@ function dismissTutorial() {
 
 function startGame() {
     sfx.init(); // Initialize Audio on user interaction
-    sfx.loadBGM('assets/audio/bgm_battle.mp3');
+    sfx.loadBGM('assets/audio/bgm_battle.mp3'); // Fixed typo from .mpm3 to .mp3
     sfx.playBGM();
 
     // Ensure textures are generated before starting
@@ -2557,7 +2571,7 @@ function gameLoop(timestamp) {
         }
 
         // Apply timescale to game logic
-        dt = rawDt * timeScale;
+        const dt = rawDt * timeScale;
 
         update(dt, rawDt);
     }
@@ -2795,8 +2809,8 @@ function draw() {
     // Particles on top
     particles.forEach(p => p.draw(ctx));
 
-    // UI overlays on very top
-    damageTexts.forEach(dt => dt.draw(ctx));
+    // UI overlays on top
+    damageTexts.forEach(txt => txt.draw(ctx));
 
     // --- Countdown Overlay (Canvas-drawn) ---
     if (gameState === 'countdown') {
@@ -2810,7 +2824,7 @@ function draw() {
 
     // Resolve Death Check at the very end of the frame
     // This allows Vampire perk (healOnKill) or LevelUps to save the player if they trade hits with an enemy
-    if (player.health <= 0 && gameState !== 'gameover' && gameState !== 'bosstransition' && gameState !== 'levelup') {
+    if (player.health <= 0 && gameState !== 'gameover' && gameState !== 'levelup') {
         // Double check: if pending level ups exist, let them process instead of dying
         if (pendingLevelUps > 0) {
             triggerLevelUp();
