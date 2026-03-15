@@ -177,6 +177,7 @@ button {
     opacity: 0;
     transition: opacity 0.3s;
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 4px 10px rgba(0, 0, 0, 0.8);
+    width: 100%;
 }
 
 .msg-just-evade {
@@ -239,6 +240,15 @@ button {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
+    text-align: center;
+}
+
+.full-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .screen.active {

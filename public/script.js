@@ -20,14 +20,25 @@ const restartBtn = document.getElementById('restart-btn');
 const messageDisplay = document.getElementById('message-display');
 
 // Mobile detection
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 900);
+function checkMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 900);
+}
+let isMobile = checkMobile();
 const mobileControls = document.getElementById('mobile-controls');
 const joystickKnob = document.getElementById('joystick-knob');
 const joystickBase = document.getElementById('joystick-base');
 
-if (isMobile) {
-    mobileControls.classList.remove('hide');
+function updateMobileUI() {
+    isMobile = checkMobile();
+    if (isMobile) {
+        mobileControls.classList.remove('hide');
+    } else {
+        mobileControls.classList.add('hide');
+    }
 }
+
+updateMobileUI();
+window.addEventListener('resize', updateMobileUI);
 
 // --- Perk System ---
 const availablePerks = [
