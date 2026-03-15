@@ -629,15 +629,105 @@ button {
         height: 100vh;
         border: none;
         border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
-    .screen h1 { font-size: 32px; }
-    .screen h2 { font-size: 28px; }
+    #gameCanvas {
+        max-height: 80vh;
+        width: 100%;
+        object-fit: contain;
+    }
+
+    .screen h1 { font-size: 28px; }
+    .screen h2 { font-size: 24px; }
     
-    .top-bar { top: 10px; left: 10px; right: 10px; }
-    .bar-container { width: 140px; }
-    .stat-label { font-size: 14px; }
+    .top-bar { 
+        top: calc(env(safe-area-inset-top) + 10px); 
+        left: 10px; 
+        right: 10px; 
+    }
+    .bar-container { width: 120px; }
+    .stat-label { font-size: 13px; }
     
-    .upgrade-btn { min-width: auto; width: 90%; font-size: 14px; padding: 10px; }
-    .upgrade-options { width: 90%; }
+    .upgrade-btn { min-width: auto; width: 95%; font-size: 14px; padding: 12px; }
+    
+    /* Tutorial Mobile Optimization */
+    .tutorial-grid {
+        width: 95%;
+        gap: 8px;
+    }
+    
+    .tutorial-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    
+    .tutorial-keys {
+        min-width: unset;
+        width: 100%;
+    }
+
+    /* Fixed Pad Position for Mobile - higher up to avoid accidental home swipes */
+    #mobile-controls {
+        bottom: calc(env(safe-area-inset-bottom) + 60px);
+        padding: 0 20px;
+        height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .screen h1 { font-size: 24px; }
+    .screen h2 { font-size: 20px; }
+
+    .top-bar {
+        top: calc(env(safe-area-inset-top) + 5px);
+        left: 5px;
+        right: 5px;
+    }
+    .bar-container { width: 100px; }
+    .stat-label { font-size: 12px; }
+
+    #mobile-controls {
+        bottom: calc(env(safe-area-inset-bottom) + 40px);
+        padding: 0 10px;
+    }
+
+    #joystick-area {
+        width: 100px;
+        height: 100px;
+    }
+
+    #joystick-knob {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mobile-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 14px;
+    }
+
+    .sp-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 12px;
+    }
+
+    .attack-btn {
+        width: 75px;
+        height: 75px;
+        font-size: 18px;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #mobile-controls {
+        bottom: 10px;
+    }
+    .top-bar { top: 5px; }
 }
