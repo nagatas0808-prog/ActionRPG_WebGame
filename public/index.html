@@ -18,45 +18,17 @@
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
 </head>
 
 <body>
     <div id="game-container">
         <!-- UI Overlay -->
         <div id="ui-layer">
-            <div id="game-view-scaler">
-                <div class="top-bar">
-                    <div class="stats">
-                        <span class="stat-label">TIME: <span id="survival-timer">1:00</span></span>
-                        <span class="stat-label">討伐数: <span id="score">0</span></span>
-                        <span class="stat-label">Lv: <span id="player-level">1</span></span>
-                    </div>
-                    <div class="bars">
-                        <div class="bar-container hp-container">
-                            <div id="health-bar" class="bar hp"></div>
-                        </div>
-                        <div class="bar-container exp-container">
-                            <div id="exp-bar" class="bar exp"></div>
-                        </div>
-                        <div class="bar-container sp-container">
-                            <div id="special-bar" class="bar sp"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Game Canvas -->
-                <canvas id="gameCanvas" width="800" height="600"></canvas>
-            </div>
-
-            <!-- Boss HP Bar (Hidden by default) -->
-            <div id="boss-hud" class="hide">
-                <div class="boss-name">不明なる厄災</div>
-                <div class="bar-container boss-hp-container">
-                    <div id="boss-hp-bar" class="bar boss-hp"></div>
-                </div>
-            </div>
-
+            <!-- 
+              CSSでのHUD制御を容易にするため、全画面スクリーンを先に配置 
+              .screen.active ~ #game-view-scaler .top-bar { display: none; } を可能にする 
+            -->
             <div id="message-display"></div>
 
             <!-- Warning Overlay -->
@@ -118,9 +90,6 @@
                     Key to Start</p>
             </div>
 
-            <!-- Countdown Overlay (Canvas-drawn, this is just a state container) -->
-            <div id="countdown-overlay" class="hide"></div>
-
             <!-- Screens -->
             <div id="title-screen" class="screen full-center active">
                 <h1 class="glitch" data-text="剣戟の軌跡 -JUST EVASION-">剣戟の軌跡<br><span
@@ -151,6 +120,42 @@
                 </div>
                 <p class="blink-text" style="margin-top:20px; font-size:1.0em; color:var(--primary-color);">Press ENTER to Select</p>
             </div>
+
+            <!-- Scaler - HUD and Canvas -->
+            <div id="game-view-scaler">
+                <div class="top-bar">
+                    <div class="stats">
+                        <span class="stat-label">TIME: <span id="survival-timer">1:00</span></span>
+                        <span class="stat-label">討伐数: <span id="score">0</span></span>
+                        <span class="stat-label">Lv: <span id="player-level">1</span></span>
+                    </div>
+                    <div class="bars">
+                        <div class="bar-container hp-container">
+                            <div id="health-bar" class="bar hp"></div>
+                        </div>
+                        <div class="bar-container exp-container">
+                            <div id="exp-bar" class="bar exp"></div>
+                        </div>
+                        <div class="bar-container sp-container">
+                            <div id="special-bar" class="bar sp"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Canvas -->
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </div>
+
+            <!-- Boss HP Bar (Hidden by default) -->
+            <div id="boss-hud" class="hide">
+                <div class="boss-name">不明なる厄災</div>
+                <div class="bar-container boss-hp-container">
+                    <div id="boss-hp-bar" class="bar boss-hp"></div>
+                </div>
+            </div>
+
+            <!-- Countdown Overlay -->
+            <div id="countdown-overlay" class="hide"></div>
         </div>
 
         <!-- Mobile Controls (Virtual Pad) -->
@@ -168,7 +173,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=11"></script>
+    <script src="script.js?v=12"></script>
 </body>
 
 </html>

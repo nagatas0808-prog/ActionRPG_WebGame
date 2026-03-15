@@ -279,7 +279,20 @@ h2 {
     transition: opacity 0.3s, visibility 0.3s;
     text-align: center;
     z-index: 200; /* Ensure screens are above other UI elements */
-    pointer-events: auto; /* Ensure buttons in screens are clickable despite parent none */
+    pointer-events: auto !important; /* Force interactive despite parent none */
+}
+
+/* 
+  アクティブな画面（タイトルやチュートリアル）が出ている時はHUDを完全に隠して
+  透過によるノイズ（しんたろうさん指摘）を防ぐ
+*/
+.screen.active ~ #game-view-scaler .top-bar,
+.screen.active ~ #boss-hud {
+    display: none !important;
+}
+
+.neon-btn, .perk-btn, .mobile-btn {
+    pointer-events: auto !important;
 }
 
 .full-center {

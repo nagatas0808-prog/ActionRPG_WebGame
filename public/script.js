@@ -40,7 +40,6 @@ function updateMobileUI() {
 }
 
 updateMobileUI();
-window.addEventListener('resize', updateMobileUI);
 
 // --- Perk System ---
 const availablePerks = [
