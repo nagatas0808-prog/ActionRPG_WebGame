@@ -298,6 +298,18 @@ if (isMobile) {
         }
     });
 
+    // Add touch listeners for Action Buttons to dismiss tutorial as well
+    const actionBtns = ['btn-attack', 'btn-evade', 'btn-special'];
+    actionBtns.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('touchstart', (e) => {
+                if (gameState === 'tutorial') {
+                    dismissTutorial();
+                }
+            });
+        }
+    });
     // Action buttons
     document.getElementById('btn-attack').addEventListener('touchstart', e => {
         handleAttackInput();
@@ -2554,6 +2566,17 @@ function showTutorial() {
     gameState = 'tutorial';
     titleScreen.classList.remove('active');
     document.getElementById('tutorial-screen').classList.add('active');
+    
+    // Add one-time mobile touch listener to dismiss tutorial
+    if (isMobile) {
+        const dismissHandler = () => {
+            if (gameState === 'tutorial') {
+                dismissTutorial();
+                document.getElementById('tutorial-screen').removeEventListener('touchstart', dismissHandler);
+            }
+        };
+        document.getElementById('tutorial-screen').addEventListener('touchstart', dismissHandler);
+    }
 }
 
 function dismissTutorial() {
