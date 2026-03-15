@@ -220,9 +220,11 @@ let joystickAnchor = { x: 0, y: 0 };
 let joystickMove = { x: 0, y: 0 };
 
 // --- Mobile Touch Events (Enhanced) ---
+let joystickTouchId = null;
 const handleJoystickStart = e => {
     joystickActive = true;
     const touch = e.touches ? e.touches[0] : e;
+    if (e.touches) joystickTouchId = touch.identifier;
     const rect = joystickBase.getBoundingClientRect();
     joystickAnchor = {
         x: rect.left + rect.width / 2,
@@ -233,7 +235,18 @@ const handleJoystickStart = e => {
 
 const handleJoystickMove = e => {
     if (!joystickActive) return;
-    const touch = e.touches ? e.touches[0] : e;
+    let touch = e.touches ? e.touches[0] : e;
+
+    if (e.touches && joystickTouchId !== null) {
+        touch = null;
+        for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].identifier === joystickTouchId) {
+                touch = e.touches[i];
+                break;
+            }
+        }
+        if (!touch) return;
+    }
 
     const dx = touch.clientX - joystickAnchor.x;
     const dy = touch.clientY - joystickAnchor.y;
@@ -263,6 +276,7 @@ const handleJoystickMove = e => {
 
 const handleJoystickEnd = () => {
     joystickActive = false;
+    joystickTouchId = null;
     joystickKnob.style.transform = `translate(0px, 0px)`;
     keys.w = keys.s = keys.a = keys.d = false;
     keys.arrowup = keys.arrowdown = keys.arrowleft = keys.arrowright = false;
@@ -271,8 +285,37 @@ const handleJoystickEnd = () => {
 // Register events for both touch and mouse (for debugging)
 joystickBase.addEventListener('touchstart', handleJoystickStart, { passive: false });
 window.addEventListener('touchmove', handleJoystickMove, { passive: false });
-window.addEventListener('touchend', handleJoystickEnd);
-window.addEventListener('touchcancel', handleJoystickEnd); // [P3] Fix stuck state
+
+window.addEventListener('touchend', e => {
+    if (!e.touches || joystickTouchId === null) {
+        handleJoystickEnd();
+        return;
+    }
+    // Check if the specific finger that started the joystick is still touching
+    let isStillTouching = false;
+    for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].identifier === joystickTouchId) {
+            isStillTouching = true;
+            break;
+        }
+    }
+    if (!isStillTouching) handleJoystickEnd();
+});
+
+window.addEventListener('touchcancel', e => {
+    if (!e.touches || joystickTouchId === null) {
+        handleJoystickEnd();
+        return;
+    }
+    let isStillTouching = false;
+    for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[ i].identifier === joystickTouchId) {
+            isStillTouching = true;
+            break;
+        }
+    }
+    if (!isStillTouching) handleJoystickEnd();
+});
 
 // --- Action Buttons (Mobile) ---
 const btnAttack = document.getElementById('btn-attack');
@@ -285,8 +328,10 @@ const setupMobileBtn = (el, callback) => {
         e.preventDefault();
         callback();
     }, { passive: false });
-    el.addEventListener('click', e => {
-        if (e.pointerType !== 'touch') callback();
+    
+    // For mouse/PC debugging (pointerdown avoids 300ms click delay)
+    el.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse') callback();
     });
 };
 
