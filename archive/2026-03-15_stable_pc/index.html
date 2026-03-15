@@ -135,26 +135,17 @@
                 <p class="blink-text" style="margin-top:20px; font-size:1.2em; color:var(--primary-color);">Press ENTER
                     to Restart</p>
                 <button id="restart-btn" class="neon-btn">再挑戦</button>
-                <button id="share-btn" class="neon-btn share-btn" style="margin-top:10px; background:#1da1f2; border-color:#1da1f2; color:white;">Xで結果をポスト</button>
             </div>
 
             <!-- Level Up Screen -->
+            <div id="levelup-screen" class="screen full-center hide">
+                <h2>LEVEL UP!</h2>
+                <p>恩恵を選択せよ：</p>
+                <div class="upgrade-options" id="perk-container">
+                    <!-- JavaScript will inject buttons here -->
+                </div>
                 <p class="blink-text" style="margin-top:20px; font-size:1.0em; color:var(--primary-color);">Press ENTER
                     to Select</p>
-            </div>
-
-            <!-- Mobile Controls (Virtual Pad) -->
-            <div id="mobile-controls" class="hide">
-                <div id="joystick-area">
-                    <div id="joystick-base">
-                        <div id="joystick-knob"></div>
-                    </div>
-                </div>
-                <div id="action-area">
-                    <div id="btn-special" class="mobile-btn sp-btn">奥義</div>
-                    <div id="btn-evade" class="mobile-btn evade-btn">回避</div>
-                    <div id="btn-attack" class="mobile-btn attack-btn">攻撃</div>
-                </div>
             </div>
         </div>
 

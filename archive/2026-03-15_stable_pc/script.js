@@ -19,16 +19,6 @@ const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 const messageDisplay = document.getElementById('message-display');
 
-// Mobile detection
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 900);
-const mobileControls = document.getElementById('mobile-controls');
-const joystickKnob = document.getElementById('joystick-knob');
-const joystickBase = document.getElementById('joystick-base');
-
-if (isMobile) {
-    mobileControls.classList.remove('hide');
-}
-
 // --- Perk System ---
 const availablePerks = [
     { id: 'kensei', name: '剣聖', desc: 'リーチ ＋ 攻撃範囲の大幅拡大' },
@@ -200,107 +190,6 @@ const keys = {
 };
 const mouse = { x: 0, y: 0, left: false, right: false };
 let currentPerkIndex = 0; // For keyboard navigation of levelup perks
-
-// Joystick State
-let joystickActive = false;
-let joystickAnchor = { x: 0, y: 0 };
-let joystickMove = { x: 0, y: 0 };
-
-// --- Mobile Touch Events ---
-if (isMobile) {
-    // Joystick handling
-    joystickBase.addEventListener('touchstart', e => {
-        joystickActive = true;
-        const touch = e.touches[0];
-        const rect = joystickBase.getBoundingClientRect();
-        joystickAnchor = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-        };
-        e.preventDefault();
-    }, { passive: false });
-
-    window.addEventListener('touchmove', e => {
-        if (!joystickActive) return;
-        // Find the touch that started the joystick
-        let touch = null;
-        for(let i=0; i<e.touches.length; i++) {
-            const t = e.touches[i];
-            const dx = t.clientX - joystickAnchor.x;
-            const dy = t.clientY - joystickAnchor.y;
-            if (Math.sqrt(dx*dx + dy*dy) < 150) { // reasonable distance
-                touch = t;
-                break;
-            }
-        }
-        if (!touch) return;
-
-        const dx = touch.clientX - joystickAnchor.x;
-        const dy = touch.clientY - joystickAnchor.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxRadius = 40;
-
-        const ratio = Math.min(dist, maxRadius) / dist;
-        const finalX = dist > 0 ? dx * ratio : 0;
-        const finalY = dist > 0 ? dy * ratio : 0;
-
-        joystickKnob.style.transform = `translate(${finalX}px, ${finalY}px)`;
-        
-        // Update key states for movement
-        const threshold = 10;
-        keys.w = finalY < -threshold;
-        keys.s = finalY > threshold;
-        keys.a = finalX < -threshold;
-        keys.d = finalX > threshold;
-        
-        // Also support arrow keys
-        keys.arrowup = keys.w;
-        keys.arrowdown = keys.s;
-        keys.arrowleft = keys.a;
-        keys.arrowright = keys.d;
-        
-        e.preventDefault();
-    }, { passive: false });
-
-    window.addEventListener('touchend', e => {
-        if (joystickActive) {
-            // Check if any touch is still likely to be the joystick touch
-            let joystickStillActive = false;
-            for(let i=0; i<e.touches.length; i++) {
-                const t = e.touches[i];
-                const dx = t.clientX - joystickAnchor.x;
-                const dy = t.clientY - joystickAnchor.y;
-                if (Math.sqrt(dx*dx + dy*dy) < 150) {
-                    joystickStillActive = true;
-                    break;
-                }
-            }
-
-            if (!joystickStillActive) {
-                joystickActive = false;
-                joystickKnob.style.transform = `translate(0px, 0px)`;
-                keys.w = keys.s = keys.a = keys.d = false;
-                keys.arrowup = keys.arrowdown = keys.arrowleft = keys.arrowright = false;
-            }
-        }
-    });
-
-    // Action buttons
-    document.getElementById('btn-attack').addEventListener('touchstart', e => {
-        handleAttackInput();
-        e.preventDefault();
-    }, { passive: false });
-
-    document.getElementById('btn-evade').addEventListener('touchstart', e => {
-        handleEvadeInput();
-        e.preventDefault();
-    }, { passive: false });
-
-    document.getElementById('btn-special').addEventListener('touchstart', e => {
-        handleSpecialInput();
-        e.preventDefault();
-    }, { passive: false });
-}
 
 // --- Event Listeners ---
 const lastKeyTimes = { w: 0, a: 0, s: 0, d: 0, arrowup: 0, arrowleft: 0, arrowdown: 0, arrowright: 0 };
@@ -2636,19 +2525,6 @@ function winGame() {
     timeScale = 0.3;
     slowMoTimer = 5.0;
 }
-
-function shareOnX() {
-    const text = `剣戟の軌跡 -JUST EVASION- で力尽きた...\n到達レベル: ${player ? player.level : 1}\n最終討伐数: ${score}pt\n#ActionRPG #WebGame #JustEvasion\n`;
-    const url = window.location.href;
-    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    window.open(shareUrl, '_blank');
-}
-
-// SNS Share Button Listener
-document.getElementById('share-btn').addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent restarting game when clicking share button
-    shareOnX();
-});
 
 function gameLoop(timestamp) {
     if (gameState === 'title' || gameState === 'gameover') {
